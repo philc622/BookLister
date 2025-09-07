@@ -1,0 +1,43 @@
+# Ignore build outputs
+bin/
+obj/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore logs
+*.log
+
+# Ignore published output
+publish/
+out/
+
+# Ignore NuGet packages
+*.nupkg
+packages/
+.nuget/
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore OS files
+Thumbs.db
+.DS_Store
+
+# Ignore node_modules if using npm/yarn for frontend
+node_modules/
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore wwwroot generated files (if any)
+wwwroot/dist/
+wwwroot/node_modules/

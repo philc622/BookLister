@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reading List</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.05) 10px,
+                rgba(255, 255, 255, 0.05) 20px
+            );
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header h1 {
+            position: relative;
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            position: relative;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .user-info {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .welcome-message {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .login-form {
+            padding: 40px;
+        }
+
+        .add-book-form {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .add-book-form:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .books-list {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .books-header {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .books-header h2 {
+            color: #495057;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .book-item {
+            padding: 25px 30px;
+            border-bottom: 1px solid #f1f3f4;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .book-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .book-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .book-item:last-child {
+            border-bottom: none;
+        }
+
+        .book-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 5px;
+        }
+
+        .book-author {
+            color: #6c757d;
+            font-size: 1rem;
+            font-style: italic;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .demo-accounts {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
+            font-size: 0.9rem;
+        }
+
+        .demo-accounts strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        #login-page {
+            display: block;
+        }
+
+        #app-page {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container, .login-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .content, .login-form {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page">
+        <div class="login-container">
+            <div class="header">
+                <h1>📚 Reading List</h1>
+                <p>Please login to continue</p>
+            </div>
+            
+            <div class="login-form">
+                <div class="demo-accounts">
+                    <strong>Demo Accounts:</strong>
+                    Username: demo, Password: demo123<br>
+                    Username: admin, Password: admin123
+                </div>
+                
+                <div id="login-error" style="display: none;" class="error-message">
+                    Invalid username or password
+                </div>
+                
+                <form hx-post="https://localhost:7125/api/auth/login"
+                      hx-target="#login-response"
+                      hx-swap="innerHTML">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required 
+                               placeholder="Enter your username...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required 
+                               placeholder="Enter your password...">
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        Login
+                    </button>
+                </form>
+                
+                <div id="login-response"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Page -->
+    <div id="app-page">
+        <div class="container">
+            <div class="header">
+                <h1>📚 My Reading List</h1>
+                <p>Keep track of all the amazing books you've read</p>
+                <div class="user-info">
+                    <span class="welcome-message">Welcome, <span id="current-user"></span>!</span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <!-- Add Book Form -->
+                <div class="add-book-form">
+                    <h2 style="margin-bottom: 25px; color: #495057; font-size: 1.3rem; font-weight: 600;">Add a New Book</h2>
+                    <form hx-post="https://localhost:7125/api/books" 
+                          hx-target="#books-container" 
+                          hx-swap="innerHTML"
+                          hx-indicator="#loading">
+                        <div class="form-group">
+                            <label for="title">Book Title</label>
+                            <input type="text" id="title" name="title" required 
+                                   placeholder="Enter the book title...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="author">Author</label>
+                            <input type="text" id="author" name="author" required 
+                                   placeholder="Enter the author's name...">
+                        </div>
+                        
+                        <button type="submit" class="btn">
+                            <span id="loading" class="htmx-indicator" style="display: none;">Adding...</span>
+                            <span id="submit-text">Add Book</span>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Books List -->
+                <div class="books-list">
+                    <div class="books-header">
+                        <h2>Your Reading Collection</h2>
+                    </div>
+                    <div id="books-container">
+                        <!-- Books will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is already logged in on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+        });
+
+        // Handle login response
+        document.body.addEventListener('htmx:afterRequest', function(event) {
+            if (event.detail.xhr.responseURL && event.detail.xhr.responseURL.includes('/api/auth/login')) {
+                const response = event.detail.xhr.responseText;
+                if (response.includes('login-success')) {
+                    // Extract username from response
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(response, 'text/html');
+                    const username = doc.querySelector('[data-username]').getAttribute('data-username');
+                    
+                    showApp(username);
+                    loadBooks();
+                } else {
+                    document.getElementById('login-error').style.display = 'block';
+                }
+            }
+        });
+
+        function showApp(username) {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('app-page').style.display = 'block';
+            document.getElementById('current-user').textContent = username;
+        }
+
+        function showLogin() {
+            document.getElementById('login-page').style.display = 'block';
+            document.getElementById('app-page').style.display = 'none';
+            document.getElementById('login-error').style.display = 'none';
+            // Clear form
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function logout() {
+            fetch('https://localhost:7125/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            }).then(() => {
+                showLogin();
+            });
+        }
+
+        function checkAuthStatus() {
+            fetch('https://localhost:7125/api/auth/status', {
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.isAuthenticated) {
+                    showApp(data.username);
+                    loadBooks();
+                } else {
+                    showLogin();
+                }
+            })
+            .catch(() => {
+                showLogin();
+            });
+        }
+
+        function loadBooks() {
+            // Trigger the books loading
+            htmx.ajax('GET', 'https://localhost:7125/api/books', {
+                target: '#books-container',
+                swap: 'innerHTML'
+            });
+        }
+    </script>
+</body>
+</html>
