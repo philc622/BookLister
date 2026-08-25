@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Reading List</title>
+    <title>BookLister - Track Your Books</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
         * {
@@ -17,25 +17,16 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #333;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .login-container {
-            max-width: 400px;
-            margin: 50px auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
             overflow: hidden;
         }
 
@@ -44,482 +35,373 @@
             color: white;
             padding: 30px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(255, 255, 255, 0.05) 10px,
-                rgba(255, 255, 255, 0.05) 20px
-            );
-            animation: shimmer 3s linear infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
         }
 
         .header h1 {
-            position: relative;
             font-size: 2.5rem;
             font-weight: 300;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .header p {
-            position: relative;
             opacity: 0.9;
             font-size: 1.1rem;
         }
 
-        .user-info {
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .welcome-message {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
-        }
-
         .content {
-            padding: 40px;
-        }
-
-        .login-form {
-            padding: 40px;
-        }
-
-        .add-book-form {
-            background: #f8f9fa;
             padding: 30px;
-            border-radius: 15px;
+        }
+
+        /* Stats Grid */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
             margin-bottom: 30px;
-            border: 1px solid #e9ecef;
-            transition: all 0.3s ease;
         }
 
-        .add-book-form:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-top: 4px solid #667eea;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .stat-box.stat-read {
+            border-top-color: #28a745;
         }
 
-        .form-group label {
+        .stat-box.stat-reading {
+            border-top-color: #007bff;
+        }
+
+        .stat-box.stat-unfinished {
+            border-top-color: #ffc107;
+        }
+
+        .stat-number {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #495057;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
             font-size: 0.9rem;
+            color: #6c757d;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .form-group input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+        /* Add Book Form */
+        .card {
             background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
         }
 
-        .form-group input:focus {
+        .card h2 {
+            font-size: 1.3rem;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-1px);
         }
 
         .btn {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
+            padding: 12px 24px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
+            transition: all 0.2s;
+            height: 46px;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .btn:active {
-            transform: translateY(0);
+        /* Search Section */
+        .search-box {
+            margin-bottom: 20px;
         }
 
-        .books-list {
+        .search-box input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Book List & Cards */
+        .book-card {
             background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            transition: all 0.2s;
         }
 
-        .books-header {
-            background: #f8f9fa;
-            padding: 20px 30px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .books-header h2 {
-            color: #495057;
-            font-size: 1.3rem;
-            font-weight: 600;
-        }
-
-        .book-item {
-            padding: 25px 30px;
-            border-bottom: 1px solid #f1f3f4;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .book-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            transform: scaleY(0);
-            transition: transform 0.3s ease;
-        }
-
-        .book-item:hover::before {
-            transform: scaleY(1);
-        }
-
-        .book-item:hover {
-            background: #f8f9fa;
-            transform: translateX(5px);
-        }
-
-        .book-item:last-child {
-            border-bottom: none;
+        .book-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .book-title {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             font-weight: 600;
             color: #212529;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .book-author {
             color: #6c757d;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-reading {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        .badge-finished {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .badge-unfinished {
+            background: #fff8e1;
+            color: #f57f17;
+        }
+
+        .book-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: background-color 0.2s;
+        }
+
+        .btn-finish {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #a5d6a7;
+        }
+
+        .btn-finish:hover {
+            background: #c8e6c9;
+        }
+
+        .btn-reading {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-color: #90caf9;
+        }
+
+        .btn-reading:hover {
+            background: #bbdefb;
+        }
+
+        .btn-unfinished {
+            background: #fff8e1;
+            color: #f57f17;
+            border-color: #ffe082;
+        }
+
+        .btn-unfinished:hover {
+            background: #ffecb3;
+        }
+
+        .btn-delete {
+            background: #ffebee;
+            color: #c62828;
+            border-color: #ef9a9a;
+        }
+
+        .btn-delete:hover {
+            background: #ffcdd2;
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 30px;
+            padding: 30px;
             color: #6c757d;
+            font-style: italic;
         }
 
-        .empty-state svg {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-        }
-
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
-        }
-
-        .demo-accounts {
-            background: #d1ecf1;
-            color: #0c5460;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #bee5eb;
-            font-size: 0.9rem;
-        }
-
-        .demo-accounts strong {
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        #login-page {
-            display: block;
-        }
-
-        #app-page {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .container, .login-container {
-                margin: 10px;
-                border-radius: 15px;
-            }
-            
-            .content, .login-form {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .user-info {
-                flex-direction: column;
-                gap: 10px;
-            }
+        /* Section Tabs */
+        .section-header {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: #333;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
         }
     </style>
 </head>
 <body>
-    <!-- Login Page -->
-    <div id="login-page">
-        <div class="login-container">
-            <div class="header">
-                <h1>📚 Reading List</h1>
-                <p>Please login to continue</p>
-            </div>
-            
-            <div class="login-form">
-                <div class="demo-accounts">
-                    <strong>Demo Accounts:</strong>
-                    Username: demo, Password: demo123<br>
-                    Username: admin, Password: admin123
-                </div>
-                
-                <div id="login-error" style="display: none;" class="error-message">
-                    Invalid username or password
-                </div>
-                
-                <form hx-post="https://localhost:7125/api/auth/login"
-                      hx-target="#login-response"
-                      hx-swap="innerHTML">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required 
-                               placeholder="Enter your username...">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required 
-                               placeholder="Enter your password...">
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        Login
-                    </button>
-                </form>
-                
-                <div id="login-response"></div>
-            </div>
+    <div class="container">
+        <div class="header">
+            <h1>📚 BookLister</h1>
+            <p>Track your reading progress, finished books, and reading list</p>
         </div>
-    </div>
 
-    <!-- Main Application Page -->
-    <div id="app-page">
-        <div class="container">
-            <div class="header">
-                <h1>📚 My Reading List</h1>
-                <p>Keep track of all the amazing books you've read</p>
-                <div class="user-info">
-                    <span class="welcome-message">Welcome, <span id="current-user"></span>!</span>
-                    <button class="logout-btn" onclick="logout()">Logout</button>
-                </div>
+        <div class="content">
+            <!-- Stats Display -->
+            <div id="stats-section"
+                 hx-get="/stats"
+                 hx-trigger="load, booksUpdated from:body"
+                 hx-swap="innerHTML">
+                <!-- Loaded dynamically -->
             </div>
-            
-            <div class="content">
-                <!-- Add Book Form -->
-                <div class="add-book-form">
-                    <h2 style="margin-bottom: 25px; color: #495057; font-size: 1.3rem; font-weight: 600;">Add a New Book</h2>
-                    <form hx-post="https://localhost:7125/api/books" 
-                          hx-target="#books-container" 
-                          hx-swap="innerHTML"
-                          hx-indicator="#loading">
+
+            <!-- Add Book Form -->
+            <div class="card">
+                <h2>Add a New Book</h2>
+                <form hx-post="/books"
+                      hx-on::after-request="if(event.detail.successful) this.reset()"
+                      hx-swap="none">
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label for="title">Book Title</label>
-                            <input type="text" id="title" name="title" required 
-                                   placeholder="Enter the book title...">
+                            <label for="title">Title</label>
+                            <input type="text" id="title" name="title" required placeholder="Book title...">
                         </div>
-                        
                         <div class="form-group">
                             <label for="author">Author</label>
-                            <input type="text" id="author" name="author" required 
-                                   placeholder="Enter the author's name...">
+                            <input type="text" id="author" name="author" required placeholder="Author name...">
                         </div>
-                        
-                        <button type="submit" class="btn">
-                            <span id="loading" class="htmx-indicator" style="display: none;">Adding...</span>
-                            <span id="submit-text">Add Book</span>
-                        </button>
-                    </form>
-                </div>
-                
-                <!-- Books List -->
-                <div class="books-list">
-                    <div class="books-header">
-                        <h2>Your Reading Collection</h2>
+                        <div class="form-group">
+                            <label for="status">Initial Status</label>
+                            <select id="status" name="status">
+                                <option value="reading">Currently Reading</option>
+                                <option value="finished">Finished</option>
+                                <option value="unfinished">Unfinished</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn">Add Book</button>
+                        </div>
                     </div>
-                    <div id="books-container">
-                        <!-- Books will be loaded here -->
-                    </div>
-                </div>
+                </form>
+            </div>
+
+            <!-- Currently Reading Section -->
+            <div class="section-header">📖 Currently Reading</div>
+            <div id="reading-list"
+                 hx-get="/books?status=reading"
+                 hx-trigger="load, booksUpdated from:body"
+                 hx-swap="innerHTML">
+            </div>
+
+            <!-- Search Read Books Section -->
+            <div class="section-header">🔍 Search Finished Books</div>
+            <div class="search-box">
+                <input type="text"
+                       name="q"
+                       placeholder="Search through read books by title or author..."
+                       hx-get="/books/search"
+                       hx-trigger="keyup changed delay:300ms, search, load, booksUpdated from:body"
+                       hx-target="#search-results"
+                       hx-swap="innerHTML">
+            </div>
+            <div id="search-results">
+                <!-- Search results loaded dynamically -->
+            </div>
+
+            <!-- Unfinished Books Section -->
+            <div class="section-header">⏳ Unfinished Books</div>
+            <div id="unfinished-list"
+                 hx-get="/books?status=unfinished"
+                 hx-trigger="load, booksUpdated from:body"
+                 hx-swap="innerHTML">
+            </div>
+
+            <!-- All Books List Section -->
+            <div class="section-header">📚 All Books Collection</div>
+            <div id="all-list"
+                 hx-get="/books"
+                 hx-trigger="load, booksUpdated from:body"
+                 hx-swap="innerHTML">
             </div>
         </div>
     </div>
-
-    <script>
-        // Check if user is already logged in on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuthStatus();
-        });
-
-        // Handle login response
-        document.body.addEventListener('htmx:afterRequest', function(event) {
-            if (event.detail.xhr.responseURL && event.detail.xhr.responseURL.includes('/api/auth/login')) {
-                const response = event.detail.xhr.responseText;
-                if (response.includes('login-success')) {
-                    // Extract username from response
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(response, 'text/html');
-                    const username = doc.querySelector('[data-username]').getAttribute('data-username');
-                    
-                    showApp(username);
-                    loadBooks();
-                } else {
-                    document.getElementById('login-error').style.display = 'block';
-                }
-            }
-        });
-
-        function showApp(username) {
-            document.getElementById('login-page').style.display = 'none';
-            document.getElementById('app-page').style.display = 'block';
-            document.getElementById('current-user').textContent = username;
-        }
-
-        function showLogin() {
-            document.getElementById('login-page').style.display = 'block';
-            document.getElementById('app-page').style.display = 'none';
-            document.getElementById('login-error').style.display = 'none';
-            // Clear form
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
-
-        function logout() {
-            fetch('https://localhost:7125/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            }).then(() => {
-                showLogin();
-            });
-        }
-
-        function checkAuthStatus() {
-            fetch('https://localhost:7125/api/auth/status', {
-                credentials: 'include'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.isAuthenticated) {
-                    showApp(data.username);
-                    loadBooks();
-                } else {
-                    showLogin();
-                }
-            })
-            .catch(() => {
-                showLogin();
-            });
-        }
-
-        function loadBooks() {
-            // Trigger the books loading
-            htmx.ajax('GET', 'https://localhost:7125/api/books', {
-                target: '#books-container',
-                swap: 'innerHTML'
-            });
-        }
-    </script>
 </body>
 </html>

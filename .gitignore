@@ -1,43 +1,42 @@
-# Ignore build outputs
-bin/
-obj/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Ignore user-specific files
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
+# Virtual environments
+venv/
+.venv/
+ENV/
 
-# Ignore VS Code settings
+# SQLite Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDEs & Editors
 .vscode/
+.idea/
+*.swp
+*.swo
 
-# Ignore logs
-*.log
-
-# Ignore published output
-publish/
-out/
-
-# Ignore NuGet packages
-*.nupkg
-packages/
-.nuget/
-
-# Ignore temporary files
-*.tmp
-*.temp
-
-# Ignore OS files
+# OS files
 Thumbs.db
 .DS_Store
-
-# Ignore node_modules if using npm/yarn for frontend
-node_modules/
-
-# Ignore environment files
-.env
-.env.*
-
-# Ignore wwwroot generated files (if any)
-wwwroot/dist/
-wwwroot/node_modules/
