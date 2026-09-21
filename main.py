@@ -77,9 +77,11 @@ def render_book_card(book: dict) -> str:
 
     return f"""
     <div class="book-card" id="book-item-{book_id}">
-        <div class="book-info">
-            <h3 class="book-title">{title}</h3>
-            <p class="book-author">by {author}</p>
+        <div class="book-header">
+            <div class="book-info">
+                <h3 class="book-title">{title}</h3>
+                <p class="book-author">by {author}</p>
+            </div>
             <span class="badge {status_badge_class}">{status_label}</span>
         </div>
         <div class="book-actions">
@@ -116,7 +118,6 @@ async def update_status(book_id: int, status: str = Query(...)):
         return HTMLResponse(content='<div class="error-message">Book not found.</div>', status_code=404)
 
     headers = {"HX-Trigger": "booksUpdated"}
-    # Return empty content because HX-Trigger will refresh the book lists and stats
     return HTMLResponse(content="", headers=headers)
 
 @app.delete("/books/{book_id}", response_class=HTMLResponse)
@@ -148,7 +149,7 @@ async def get_stats_endpoint():
         </div>
         <div class="stat-box stat-reading">
             <span class="stat-number">{stats['reading']}</span>
-            <span class="stat-label">Currently Reading</span>
+            <span class="stat-label">Reading</span>
         </div>
         <div class="stat-box stat-unfinished">
             <span class="stat-number">{stats['unfinished']}</span>
