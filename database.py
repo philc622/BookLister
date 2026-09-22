@@ -18,18 +18,26 @@ def init_db():
             title TEXT NOT NULL,
             author TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'reading',
+            start_date TEXT,
+            end_date TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    cursor.execute("PRAGMA table_info(books)")
+    columns = [row["name"] for row in cursor.fetchall()]
+    if "start_date" not in columns:
+        cursor.execute("ALTER TABLE books ADD COLUMN start_date TEXT")
+    if "end_date" not in columns:
+        cursor.execute("ALTER TABLE books ADD COLUMN end_date TEXT")
     conn.commit()
     conn.close()
 
-def add_book(title: str, author: str, status: str = "reading") -> int:
+def add_book(title: str, author: str, status: str = "reading", start_date: Optional[str] = None, end_date: Optional[str] = None) -> int:
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO books (title, author, status) VALUES (?, ?, ?)",
-        (title.strip(), author.strip(), status)
+        "INSERT INTO books (title, author, status, start_date, end_date) VALUES (?, ?, ?, ?, ?)",
+        (title.strip(), author.strip(), status, start_date.strip() if start_date and start_date.strip() else None, end_date.strip() if end_date and end_date.strip() else None)
     )
     conn.commit()
     book_id = cursor.lastrowid
@@ -47,10 +55,20 @@ def get_books(status: Optional[str] = None) -> List[Dict[str, Any]]:
     conn.close()
     return [dict(row) for row in rows]
 
-def update_book_status(book_id: int, status: str) -> bool:
+def update_book_status(book_id: int, status: str, start_date: Optional[str] = None, end_date: Optional[str] = None) -> bool:
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE books SET status = ? WHERE id = ?", (status, book_id))
+    query = "UPDATE books SET status = ?"
+    params: List[Any] = [status]
+    if start_date is not None:
+        query += ", start_date = ?"
+        params.append(start_date.strip() if start_date.strip() else None)
+    if end_date is not None:
+        query += ", end_date = ?"
+        params.append(end_date.strip() if end_date.strip() else None)
+    query += " WHERE id = ?"
+    params.append(book_id)
+    cursor.execute(query, params)
     conn.commit()
     rows_affected = cursor.rowcount
     conn.close()
