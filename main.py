@@ -24,6 +24,8 @@ def render_book_card(book: dict) -> str:
     title = html.escape(book["title"])
     author = html.escape(book["author"])
     status = book["status"]
+    start_date = book.get("start_date")
+    end_date = book.get("end_date")
 
     status_badge_class = {
         "reading": "badge-reading",
@@ -36,6 +38,15 @@ def render_book_card(book: dict) -> str:
         "finished": "Finished",
         "unfinished": "Unfinished"
     }.get(status, status)
+
+    dates_html = ""
+    if start_date or end_date:
+        date_parts = []
+        if start_date:
+            date_parts.append(f"Started: {html.escape(str(start_date))}")
+        if end_date:
+            date_parts.append(f"Ended: {html.escape(str(end_date))}")
+        dates_html = f'<p class="book-dates">{" &bull; ".join(date_parts)}</p>'
 
     buttons_html = ""
     if status != "finished":
@@ -81,6 +92,7 @@ def render_book_card(book: dict) -> str:
             <div class="book-info">
                 <h3 class="book-title">{title}</h3>
                 <p class="book-author">by {author}</p>
+                {dates_html}
             </div>
             <span class="badge {status_badge_class}">{status_label}</span>
         </div>
@@ -96,11 +108,17 @@ def render_book_list(books: list, empty_message: str = "No books found.") -> str
     return "".join(render_book_card(b) for b in books)
 
 @app.post("/books", response_class=HTMLResponse)
-async def create_book(title: str = Form(...), author: str = Form(...), status: str = Form("reading")):
+async def create_book(
+    title: str = Form(...),
+    author: str = Form(...),
+    status: str = Form("reading"),
+    start_date: Optional[str] = Form(None),
+    end_date: Optional[str] = Form(None)
+):
     if not title.strip() or not author.strip():
         return HTMLResponse(content='<div class="error-message">Title and author are required.</div>', status_code=400)
 
-    database.add_book(title, author, status)
+    database.add_book(title, author, status, start_date=start_date, end_date=end_date)
     headers = {"HX-Trigger": "booksUpdated"}
     return HTMLResponse(content="", headers=headers)
 
@@ -112,8 +130,13 @@ async def list_books(status: Optional[str] = Query(None)):
 
 @app.post("/books/{book_id}/status", response_class=HTMLResponse)
 @app.patch("/books/{book_id}/status", response_class=HTMLResponse)
-async def update_status(book_id: int, status: str = Query(...)):
-    success = database.update_book_status(book_id, status)
+async def update_status(
+    book_id: int,
+    status: str = Query(...),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None)
+):
+    success = database.update_book_status(book_id, status, start_date=start_date, end_date=end_date)
     if not success:
         return HTMLResponse(content='<div class="error-message">Book not found.</div>', status_code=404)
 

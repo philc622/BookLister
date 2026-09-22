@@ -42,6 +42,66 @@ def test_add_and_get_books():
     assert "J.R.R. Tolkien" in response.text
     assert "Currently Reading" in response.text
 
+def test_add_and_get_books_with_dates():
+    response = client.post(
+        "/books",
+        data={
+            "title": "The Great Gatsby",
+            "author": "F. Scott Fitzgerald",
+            "status": "finished",
+            "start_date": "2023-01-01",
+            "end_date": "2023-01-10",
+        },
+    )
+    assert response.status_code == 200
+
+    response = client.get("/books?status=finished")
+    assert response.status_code == 200
+    assert "The Great Gatsby" in response.text
+    assert "Started: 2023-01-01" in response.text
+    assert "Ended: 2023-01-10" in response.text
+
+    books = database.get_books(status="finished")
+    assert books[0]["start_date"] == "2023-01-01"
+    assert books[0]["end_date"] == "2023-01-10"
+
+def test_db_migration():
+    import sqlite3
+    db_file = "test_migration.db"
+    if os.path.exists(db_file):
+        os.remove(db_file)
+
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE books (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            author TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'reading',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+    old_db_path = os.environ.get("DB_PATH")
+    try:
+        os.environ["DB_PATH"] = db_file
+        database.init_db()
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(books)")
+        cols = [r["name"] for r in cursor.fetchall()]
+        conn.close()
+        assert "start_date" in cols
+        assert "end_date" in cols
+    finally:
+        if old_db_path:
+            os.environ["DB_PATH"] = old_db_path
+        if os.path.exists(db_file):
+            os.remove(db_file)
+
 def test_update_book_status():
     client.post("/books", data={"title": "1984", "author": "George Orwell", "status": "reading"})
     books = database.get_books()
